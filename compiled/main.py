@@ -20,7 +20,7 @@ class Devices:
     line_sensor_l = None
 
     brain : Brain
-    
+
     def __init__(self, inert = Ports.PORT17, fl=Ports.PORT14, fr=Ports.PORT18, bl=Ports.PORT12, br=Ports.PORT19, c=Ports.PORT20, a=Ports.PORT2, ultra=None, line_r=None, line_l=None, brain=Brain(), controller=Controller()):
         self.front_left = Motor(fl, GearSetting.RATIO_18_1, False)
         self.front_right = Motor(fr, GearSetting.RATIO_18_1, True)
