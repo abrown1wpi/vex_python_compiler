@@ -1,5 +1,5 @@
 from vex import *
-from math import sin, cos
+from math import cos, sin
 
 
 class Devices:
@@ -30,6 +30,8 @@ class Devices:
         self.arm = Motor(a, GearSetting.RATIO_36_1, False)
         self.inertial = Inertial(inert)
         
+        self.claw.set_max_torque(15, PERCENT)
+        
         self.controller = controller
         
         if ultra is not None:
@@ -50,7 +52,16 @@ class Devices:
         if self.inertial is not None:
             return self.inertial.heading()
         return 0
-        
+    
+    def imageInfo(self, colorTag):
+        image = self.camera.take_snapshot(colorTag, 1)
+        if image[0].score < 50:
+            return None
+
+        return {"width" : image[0].width, "height" : image[0].height, "pos" : {"x" : image[0].centerX, "y" : image[0].centerY}, "id" : image[0].id}
+    
+    
+         
         
 
 class Drive:
@@ -141,19 +152,20 @@ yWasPressed = False
 Geen = Colordesc(1, 77, 239, 118, 15, 0.43)
 Pupple = Colordesc(2, 171, 113, 190, 10, 0.2)
 Ormans = Colordesc(3, 244, 113, 133, 14, 0.25)
+
 devices.initCamera(Geen, Pupple, Ormans)
 
 devices.inertial.calibrate()
 
 move.switchClaw(True)
 
-if (devices.inertial.is_calibrating):
-    while(devices.inertial.is_calibrating):
-        wait(100, MSEC)
-        brain.screen.clear_line()
-        brain.screen.set_cursor(1,1)
-        brain.screen.print("Calibrating")
+
+while(devices.inertial.is_calibrating()):
+    wait(100, MSEC)
     brain.screen.clear_line()
+    brain.screen.set_cursor(1,1)
+    brain.screen.print("Calibrating")
+brain.screen.clear_line()    
 devices.inertial.set_heading(0)
             
 

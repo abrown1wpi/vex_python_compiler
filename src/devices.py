@@ -28,6 +28,8 @@ class Devices:
         self.arm = Motor(a, GearSetting.RATIO_36_1, False)
         self.inertial = Inertial(inert)
         
+        self.claw.set_max_torque(15, PERCENT)
+        
         self.controller = controller
         
         if ultra is not None:
@@ -48,5 +50,14 @@ class Devices:
         if self.inertial is not None:
             return self.inertial.heading()
         return 0
-        
+    
+    def imageInfo(self, colorTag):
+        image = self.camera.take_snapshot(colorTag, 1)
+        if image[0].score < 50:
+            return None
+
+        return {"width" : image[0].width, "height" : image[0].height, "pos" : {"x" : image[0].centerX, "y" : image[0].centerY}, "id" : image[0].id}
+    
+    
+         
         

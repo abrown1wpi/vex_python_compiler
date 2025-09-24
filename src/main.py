@@ -14,19 +14,20 @@ yWasPressed = False
 Geen = Colordesc(1, 77, 239, 118, 15, 0.43)
 Pupple = Colordesc(2, 171, 113, 190, 10, 0.2)
 Ormans = Colordesc(3, 244, 113, 133, 14, 0.25)
+
 devices.initCamera(Geen, Pupple, Ormans)
 
 devices.inertial.calibrate()
 
 move.switchClaw(True)
 
-if (devices.inertial.is_calibrating):
-    while(devices.inertial.is_calibrating):
-        wait(100, MSEC)
-        brain.screen.clear_line()
-        brain.screen.set_cursor(1,1)
-        brain.screen.print("Calibrating")
+
+while(devices.inertial.is_calibrating()):
+    wait(100, MSEC)
     brain.screen.clear_line()
+    brain.screen.set_cursor(1,1)
+    brain.screen.print("Calibrating")
+brain.screen.clear_line()    
 devices.inertial.set_heading(0)
             
 
