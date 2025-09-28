@@ -5,7 +5,7 @@ from drive import Drive
 
 # Brain should be defined by default
 brain=Brain()
-devices = Devices(brain=brain)
+devices = Devices(line_l= brain.three_wire_port.g, line_r=brain.three_wire_port.h, brain=brain)
 move = Drive(devices, 100)
 controller = Controller()
 
@@ -37,7 +37,11 @@ while(devices.inertial.is_calibrating()):
     brain.screen.print("Calibrating")
 brain.screen.clear_line()    
 devices.inertial.set_heading(0)
-            
+print(devices.line_sensor_l)
+print(devices.line_sensor_r)            
 while True:
+
+    if(devices.line_sensor_l is not None and devices.line_sensor_r is not None):
+        print(str(devices.line_sensor_l.reflectivity()) + " " + str(devices.line_sensor_r.reflectivity()))
     if (currentState == RETURNING):
         roundHeading = round(devices.getHeading()/90) * 90 

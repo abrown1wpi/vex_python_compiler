@@ -59,10 +59,15 @@ class Devices:
         return {"width" : image[0].width, "height" : image[0].height, "pos" : {"x" : image[0].centerX, "y" : image[0].centerY}, "id" : image[0].id}
     
     def getLineDif(self):
-        if (self.line_sensor_r is not None and self.line_sensor_r is not None):
-            pass
-        
-        return 0
+        lval = 1
+        rval = 1
+        if (self.line_sensor_r is not None):
+            if(self.line_sensor_r.reflectivity() < 5):
+                lval = 0
+        if (self.line_sensor_r is not None):
+            if(self.line_sensor_r.reflectivity() < 5):
+                rval = 0        
+        return lval - rval
     
     
          

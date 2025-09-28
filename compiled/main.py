@@ -88,11 +88,11 @@ class Drive:
     def setMaxSpeed(self, speed : int):
         self.max_speed = speed
     
-    def drive(self, x, y, speed : int = 100):               
-        tl = (-y - x)
-        tr = (-y + x)
-        bl = (-y + x)
-        br = (-y - x)
+    def drive(self, x, y, rot = 0, speed : int = 100):               
+        tl = (-y - x - rot)
+        tr = (-y + x + rot)
+        bl = (-y + x - rot)
+        br = (-y - x + rot)
         
         speed = int(speed / self.max_speed)
     
@@ -105,10 +105,10 @@ class Drive:
         goal = self.devices.getHeading() + heading
         while(True):
             rot = (goal - self.devices.getHeading() + 180) % 360 - 180
-            
+                
             if abs(rot) < 1.5:
                 break
-            
+                
             if abs(rot) < 20:
                 rot = 40
             
@@ -116,15 +116,14 @@ class Drive:
             tr = rot
             bl = -rot
             br = rot
+                
+                # speed = int(speed / self.max_speed)
             
-            # speed = int(speed / self.max_speed)
-        
             self.devices.front_left.spin(self.backAndForth(tl), abs(tl)*speed/100, PERCENT)
             self.devices.front_right.spin(self.backAndForth(tr), abs(tr)*speed/100, PERCENT)
             self.devices.back_left.spin(self.backAndForth(bl), abs(bl)*speed/100, PERCENT)
             self.devices.back_right.spin(self.backAndForth(br), abs(br)*speed/100, PERCENT)
         self.stopDrive()
-        
         
         
     def backAndForth(self, val):
@@ -187,7 +186,7 @@ class Drive:
 
 # Brain should be defined by default
 brain=Brain()
-devices = Devices(brain=brain)
+devices = Devices(line_l= brain.three_wire_port.g, line_r=brain.three_wire_port.h, brain=brain)
 move = Drive(devices, 100)
 controller = Controller()
 
@@ -219,8 +218,11 @@ while(devices.inertial.is_calibrating()):
     brain.screen.print("Calibrating")
 brain.screen.clear_line()    
 devices.inertial.set_heading(0)
-            
-move.rotateToHeading(90)
+print(devices.line_sensor_l)
+print(devices.line_sensor_r)            
 while True:
+
+    if(devices.line_sensor_l is not None and devices.line_sensor_r is not None):
+        print(str(devices.line_sensor_l.reflectivity()) + " " + str(devices.line_sensor_r.reflectivity()))
     if (currentState == RETURNING):
         roundHeading = round(devices.getHeading()/90) * 90 
