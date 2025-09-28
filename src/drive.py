@@ -20,11 +20,11 @@ class Drive:
     def setMaxSpeed(self, speed : int):
         self.max_speed = speed
     
-    def drive(self, x, y, speed : int = 100):               
-        tl = (-y - x)
-        tr = (-y + x)
-        bl = (-y + x)
-        br = (-y - x)
+    def drive(self, x, y, rot = 0, speed : int = 100):               
+        tl = (-y - x - rot)
+        tr = (-y + x + rot)
+        bl = (-y + x - rot)
+        br = (-y - x + rot)
         
         speed = int(speed / self.max_speed)
     
