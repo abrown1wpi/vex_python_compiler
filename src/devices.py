@@ -68,7 +68,17 @@ class Devices:
             if(self.line_sensor_r.reflectivity() < 5):
                 rval = 0        
         return lval - rval
-    
-    
-         
+
+    def isBothPos(self):
+        lval = 1
+        rval = 1
+        if (self.line_sensor_r is not None):
+            if(self.line_sensor_r.reflectivity() < 5):
+                lval = 0
+        if (self.line_sensor_r is not None):
+            if(self.line_sensor_r.reflectivity() < 5):
+                rval = 0        
+        if (lval == rval and lval == 1):
+            return True  
+        return False
         

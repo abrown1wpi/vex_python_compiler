@@ -20,13 +20,14 @@ class Drive:
     def setMaxSpeed(self, speed : int):
         self.max_speed = speed
     
-    def drive(self, x, y, rot = 0, speed : int = 100):               
+    def drive(self, x, y, rot = 0, speed : int = 100):        
         tl = (-y - x - rot)
         tr = (-y + x + rot)
         bl = (-y + x - rot)
         br = (-y - x + rot)
         
-        speed = int(speed / self.max_speed)
+        speed = speed * self.max_speed
+        print(speed)
     
         self.devices.front_left.spin(self.backAndForth(tl), abs(tl)*speed/100, PERCENT)
         self.devices.front_right.spin(self.backAndForth(tr), abs(tr)*speed/100, PERCENT)

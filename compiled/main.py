@@ -61,13 +61,28 @@ class Devices:
         return {"width" : image[0].width, "height" : image[0].height, "pos" : {"x" : image[0].centerX, "y" : image[0].centerY}, "id" : image[0].id}
     
     def getLineDif(self):
-        if (self.line_sensor_r is not None and self.line_sensor_r is not None):
-            pass
-        
-        return 0
-    
-    
-         
+        lval = 1
+        rval = 1
+        if (self.line_sensor_r is not None):
+            if(self.line_sensor_r.reflectivity() < 5):
+                lval = 0
+        if (self.line_sensor_r is not None):
+            if(self.line_sensor_r.reflectivity() < 5):
+                rval = 0        
+        return lval - rval
+
+    def isBothPos(self):
+        lval = 1
+        rval = 1
+        if (self.line_sensor_r is not None):
+            if(self.line_sensor_r.reflectivity() < 5):
+                lval = 0
+        if (self.line_sensor_r is not None):
+            if(self.line_sensor_r.reflectivity() < 5):
+                rval = 0        
+        if (lval == rval and lval == 1):
+            return True  
+        return False
         
 
 class Drive:
@@ -88,13 +103,14 @@ class Drive:
     def setMaxSpeed(self, speed : int):
         self.max_speed = speed
     
-    def drive(self, x, y, rot = 0, speed : int = 100):               
+    def drive(self, x, y, rot = 0, speed : int = 100):        
         tl = (-y - x - rot)
         tr = (-y + x + rot)
         bl = (-y + x - rot)
         br = (-y - x + rot)
+        print(speed)
+        speed = int(speed * self.max_speed/100)
         
-        speed = int(speed / self.max_speed)
     
         self.devices.front_left.spin(self.backAndForth(tl), abs(tl)*speed/100, PERCENT)
         self.devices.front_right.spin(self.backAndForth(tr), abs(tr)*speed/100, PERCENT)
@@ -193,8 +209,9 @@ controller = Controller()
 IDLE = 0
 FINDING = 1
 PICKING = 2
-RETURNING = 3
-DISPENSING = 4
+RETURNINGTOLINE = 3
+RETURNINGHOME = 4
+DISPENSING = 5
 
 currentState = IDLE
 
@@ -218,11 +235,16 @@ while(devices.inertial.is_calibrating()):
     brain.screen.print("Calibrating")
 brain.screen.clear_line()    
 devices.inertial.set_heading(0)
-print(devices.line_sensor_l)
-print(devices.line_sensor_r)            
-while True:
 
-    if(devices.line_sensor_l is not None and devices.line_sensor_r is not None):
-        print(str(devices.line_sensor_l.reflectivity()) + " " + str(devices.line_sensor_r.reflectivity()))
-    if (currentState == RETURNING):
-        roundHeading = round(devices.getHeading()/90) * 90 
+currentState = RETURNINGTOLINE
+
+while True:
+    if(currentState == RETURNINGTOLINE):
+        move.drive(0, -20, 0, 100)
+        if (devices.isBothPos()):
+            move.stopDrive()
+            
+            currentState = RETURNINGHOME
+    
+    if currentState == RETURNINGHOME:
+        pass

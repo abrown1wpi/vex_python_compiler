@@ -12,8 +12,9 @@ controller = Controller()
 IDLE = 0
 FINDING = 1
 PICKING = 2
-RETURNING = 3
-DISPENSING = 4
+RETURNINGTOLINE = 3
+RETURNINGHOME = 4
+DISPENSING = 5
 
 currentState = IDLE
 
@@ -37,11 +38,11 @@ while(devices.inertial.is_calibrating()):
     brain.screen.print("Calibrating")
 brain.screen.clear_line()    
 devices.inertial.set_heading(0)
-print(devices.line_sensor_l)
-print(devices.line_sensor_r)            
-while True:
 
-    if(devices.line_sensor_l is not None and devices.line_sensor_r is not None):
-        print(str(devices.line_sensor_l.reflectivity()) + " " + str(devices.line_sensor_r.reflectivity()))
-    if (currentState == RETURNING):
-        roundHeading = round(devices.getHeading()/90) * 90 
+aWasPressed = False
+
+while True:
+    if(currentState == RETURNINGTOLINE):
+        move.drive(0, -100, 0, 20)
+        if (devices.isBothPos()):
+            currentState = RETURNINGHOME
