@@ -9,6 +9,14 @@ devices = Devices(brain=brain)
 move = Drive(devices, 100)
 controller = Controller()
 
+IDLE = 0
+FINDING = 1
+PICKING = 2
+RETURNING = 3
+DISPENSING = 4
+
+currentState = IDLE
+
 clawtate = False
 yWasPressed = False
 Geen = Colordesc(1, 77, 239, 118, 15, 0.43)
@@ -32,4 +40,5 @@ devices.inertial.set_heading(0)
             
 
 while True:
-    yWasPressed = move.manualDrive(yWasPressed)
+    if (currentState == RETURNING):
+        roundHeading = round(devices.getHeading()/90) * 90 
