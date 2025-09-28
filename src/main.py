@@ -38,7 +38,7 @@ while(devices.inertial.is_calibrating()):
 brain.screen.clear_line()    
 devices.inertial.set_heading(0)
             
-
+move.rotateToHeading(90)
 while True:
     if (currentState == RETURNING):
         roundHeading = round(devices.getHeading()/90) * 90 

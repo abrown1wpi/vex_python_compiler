@@ -1,5 +1,5 @@
 from vex import *
-from math import cos, sin
+from math import sin, cos
 
 
 class Devices:
@@ -20,7 +20,7 @@ class Devices:
     line_sensor_l = None
 
     brain : Brain
-
+    
     def __init__(self, inert = Ports.PORT17, fl=Ports.PORT14, fr=Ports.PORT18, bl=Ports.PORT12, br=Ports.PORT19, c=Ports.PORT20, a=Ports.PORT2, ultra=None, line_r=None, line_l=None, brain=Brain(), controller=Controller()):
         self.front_left = Motor(fl, GearSetting.RATIO_18_1, False)
         self.front_right = Motor(fr, GearSetting.RATIO_18_1, True)
@@ -60,6 +60,12 @@ class Devices:
 
         return {"width" : image[0].width, "height" : image[0].height, "pos" : {"x" : image[0].centerX, "y" : image[0].centerY}, "id" : image[0].id}
     
+    def getLineDif(self):
+        if (self.line_sensor_r is not None and self.line_sensor_r is not None):
+            pass
+        
+        return 0
+    
     
          
         
@@ -82,26 +88,44 @@ class Drive:
     def setMaxSpeed(self, speed : int):
         self.max_speed = speed
     
-    def drive(self, x, y, rot, speed : int = 100, heading=None, field_oriented=None):        
-        x = self.squareProportional(x)
-        y = self.squareProportional(y)
-        rot = self.squareProportional(rot)
+    def drive(self, x, y, speed : int = 100):               
+        tl = (-y - x)
+        tr = (-y + x)
+        bl = (-y + x)
+        br = (-y - x)
         
-        if field_oriented and heading is not None and self.devices.inertial is not None:
-            angle_rad = (heading - self.devices.inertial.heading()) * (3.14159 / 180)
-            temp = y * cos(angle_rad) + x * sin(angle_rad)
-            x = -y * sin(angle_rad) + x * cos(angle_rad)
-            y = temp
-        
-        tl = (-y - x - rot)
-        tr = (-y + x + rot)
-        bl = (-y + x - rot)
-        br = (-y - x + rot)
+        speed = int(speed / self.max_speed)
     
         self.devices.front_left.spin(self.backAndForth(tl), abs(tl)*speed/100, PERCENT)
         self.devices.front_right.spin(self.backAndForth(tr), abs(tr)*speed/100, PERCENT)
         self.devices.back_left.spin(self.backAndForth(bl), abs(bl)*speed/100, PERCENT)
         self.devices.back_right.spin(self.backAndForth(br), abs(br)*speed/100, PERCENT)
+        
+    def rotateToHeading(self, heading, speed : int = 65):
+        goal = self.devices.getHeading() + heading
+        while(True):
+            rot = (goal - self.devices.getHeading() + 180) % 360 - 180
+            
+            if abs(rot) < 1.5:
+                break
+            
+            if abs(rot) < 20:
+                rot = 40
+            
+            tl = -rot
+            tr = rot
+            bl = -rot
+            br = rot
+            
+            # speed = int(speed / self.max_speed)
+        
+            self.devices.front_left.spin(self.backAndForth(tl), abs(tl)*speed/100, PERCENT)
+            self.devices.front_right.spin(self.backAndForth(tr), abs(tr)*speed/100, PERCENT)
+            self.devices.back_left.spin(self.backAndForth(bl), abs(bl)*speed/100, PERCENT)
+            self.devices.back_right.spin(self.backAndForth(br), abs(br)*speed/100, PERCENT)
+        self.stopDrive()
+        
+        
         
     def backAndForth(self, val):
         if val > 0:
@@ -121,8 +145,28 @@ class Drive:
         retVal = (val * abs(val)) / 100
         return retVal * self.max_speed / 100
     
-    def manualDrive(self, yWasPressed):
-        self.drive(self.devices.controller.axis4.position(), self.devices.controller.axis3.position(), self.devices.controller.axis1.position(), speed=75)
+    def manualDrive(self, yWasPressed, field_oriented = False, heading = None):
+        x = self.squareProportional(self.devices.controller.axis4.value())
+        y = self.squareProportional(self.devices.controller.axis3.value())
+        rot = self.squareProportional(self.devices.controller.axis1.value())
+        
+        if field_oriented and heading is not None and self.devices.inertial is not None:
+            angle_rad = (heading - self.devices.inertial.heading()) * (3.14159 / 180)
+            temp = y * cos(angle_rad) + x * sin(angle_rad)
+            x = -y * sin(angle_rad) + x * cos(angle_rad)
+            y = temp
+        
+        tl = (-y - x - rot)
+        tr = (-y + x + rot)
+        bl = (-y + x - rot)
+        br = (-y - x + rot)
+        speed = self.max_speed
+    
+        self.devices.front_left.spin(self.backAndForth(tl), abs(tl)*speed/100, PERCENT)
+        self.devices.front_right.spin(self.backAndForth(tr), abs(tr)*speed/100, PERCENT)
+        self.devices.back_left.spin(self.backAndForth(bl), abs(bl)*speed/100, PERCENT)
+        self.devices.back_right.spin(self.backAndForth(br), abs(br)*speed/100, PERCENT)        
+        
         if(self.devices.controller.buttonR1.pressing()):
             self.moveArm(DirectionType.FORWARD, 75)
         elif self.devices.controller.buttonR2.pressing():
@@ -147,6 +191,14 @@ devices = Devices(brain=brain)
 move = Drive(devices, 100)
 controller = Controller()
 
+IDLE = 0
+FINDING = 1
+PICKING = 2
+RETURNING = 3
+DISPENSING = 4
+
+currentState = IDLE
+
 clawtate = False
 yWasPressed = False
 Geen = Colordesc(1, 77, 239, 118, 15, 0.43)
@@ -168,6 +220,7 @@ while(devices.inertial.is_calibrating()):
 brain.screen.clear_line()    
 devices.inertial.set_heading(0)
             
-
+move.rotateToHeading(90)
 while True:
-    yWasPressed = move.manualDrive(yWasPressed)
+    if (currentState == RETURNING):
+        roundHeading = round(devices.getHeading()/90) * 90 
