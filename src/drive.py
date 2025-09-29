@@ -34,16 +34,13 @@ class Drive:
         self.devices.back_left.spin(self.backAndForth(bl), abs(bl)*speed/100, PERCENT)
         self.devices.back_right.spin(self.backAndForth(br), abs(br)*speed/100, PERCENT)
         
-    def rotateToHeading(self, heading, speed : int = 65):
+    def rotateToHeading(self, heading, speed : int = 30):
         goal = self.devices.getHeading() + heading
         while(True):
             rot = (goal - self.devices.getHeading() + 180) % 360 - 180
                 
             if abs(rot) < 1.5:
                 break
-                
-            if abs(rot) < 20:
-                rot = 40
             
             tl = -rot
             tr = rot
@@ -52,10 +49,10 @@ class Drive:
                 
                 # speed = int(speed / self.max_speed)
             
-            self.devices.front_left.spin(self.backAndForth(tl), abs(tl)*speed/100, PERCENT)
-            self.devices.front_right.spin(self.backAndForth(tr), abs(tr)*speed/100, PERCENT)
-            self.devices.back_left.spin(self.backAndForth(bl), abs(bl)*speed/100, PERCENT)
-            self.devices.back_right.spin(self.backAndForth(br), abs(br)*speed/100, PERCENT)
+            self.devices.front_left.spin(self.backAndForth(tl), speed/100, PERCENT)
+            self.devices.front_right.spin(self.backAndForth(tr), speed/100, PERCENT)
+            self.devices.back_left.spin(self.backAndForth(bl), speed/100, PERCENT)
+            self.devices.back_right.spin(self.backAndForth(br), speed/100, PERCENT)
         self.stopDrive()
         
         
@@ -114,5 +111,18 @@ class Drive:
                 yWasPressed = False
         if (not self.devices.controller.buttonY.pressing):
             return False
+    
+    def alignToLine(self, initDir : int):
+        while(True):
+            self.drive(initDir * 100, 0, 0, 25)
+            if(initDir == -1 and self.devices.line_sensor_r is not None):
+                if(self.devices.line_sensor_r.reflectivity() > 5):
+                    self.stopDrive()
+                    break
+            elif(initDir == 1 and self.devices.line_sensor_l is not None):
+                if(self.devices.line_sensor_l.reflectivity() > 5):
+                    self.stopDrive()
+                    break
         
-        
+    def followLine(self):
+        pass

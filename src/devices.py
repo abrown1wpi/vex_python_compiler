@@ -13,13 +13,14 @@ class Devices:
     inertial : Inertial
     camera : AiVision
     
-    ultrasonic = None
+    ultrasonic_front = None
+    ultrasonic_back = None
     line_sensor_r = None
     line_sensor_l = None
 
     brain : Brain
     
-    def __init__(self, inert = Ports.PORT17, fl=Ports.PORT14, fr=Ports.PORT18, bl=Ports.PORT12, br=Ports.PORT19, c=Ports.PORT20, a=Ports.PORT2, ultra=None, line_r=None, line_l=None, brain=Brain(), controller=Controller()):
+    def __init__(self, inert = Ports.PORT17, fl=Ports.PORT14, fr=Ports.PORT18, bl=Ports.PORT12, br=Ports.PORT19, c=Ports.PORT20, a=Ports.PORT2, ultraF=None, ultraB=None, line_r=None, line_l=None, brain=Brain(), controller=Controller()):
         self.front_left = Motor(fl, GearSetting.RATIO_18_1, False)
         self.front_right = Motor(fr, GearSetting.RATIO_18_1, True)
         self.back_left = Motor(bl, GearSetting.RATIO_18_1, False)
@@ -32,8 +33,10 @@ class Devices:
         
         self.controller = controller
         
-        if ultra is not None:
-            self.ultrasonic = Distance(ultra)
+        if ultraF is not None:
+            self.ultrasonic_front = Sonar(ultraF)
+        if ultraB is not None:
+            self.ultrasonic_back = Sonar(ultraB)
         if line_r is not None:
             self.line_sensor_r = Line(line_r)
         if line_l is not None:
