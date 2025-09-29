@@ -124,5 +124,9 @@ class Drive:
                     self.stopDrive()
                     break
         
-    def followLine(self):
-        pass
+    def followLine(self, dir, rot):
+        if (self.devices.line_sensor_l is not None and self.devices.line_sensor_r is not None):
+            rotError = rot - self.devices.getHeading()
+            xError = self.devices.getLineDif()
+            
+            self.drive(xError*10, 25 * dir, min(rotError * 10, 25))
