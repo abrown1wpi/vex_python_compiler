@@ -13,8 +13,9 @@ IDLE = 0
 FINDING = 1
 PICKING = 2
 RETURNINGTOLINE = 3
-RETURNINGHOME = 4
-DISPENSING = 5
+ALIGN = 4
+RETURNINGHOME = 5
+DISPENSING = 6
 
 currentState = IDLE
 
@@ -54,15 +55,41 @@ while True:
             if(devices.ultrasonic_back.distance(MM) > 25 and devices.ultrasonic_back.distance(MM) < 35):
                 curDist = devices.ultrasonic_back.distance(MM)
                 error = curDist - 30
-                dir = error/error * 100
-                move.drive(0, -dir, min(error + 15, 50))
+                dir = abs(error)/error * 100
+                move.drive(0, -dir, 0, min(error + 15, 50))
             else:
                 if (pickingRot == 180):
                     move.rotateToHeading(90)
+                    currentState = ALIGN
                 elif (pickingRot == 0 or pickingRot == 360):
                     move.rotateToHeading(-90)
+                    currentState = ALIGN
                 elif (pickingRot == 90):
                     move.rotateToHeading(180)
+                    currentState = ALIGN
                 elif (pickingRot == 270):
-                    pass
+                    currentState = ALIGN
+    
+    if (currentState == ALIGN):
+        if (pickingRot == 180):
+            move.alignToLine(-1)
+            currentState = RETURNINGHOME
+        elif (pickingRot == 0 or pickingRot == 360):
+            move.alignToLine(1)
+            currentState = RETURNINGHOME
+        elif (pickingRot == 90):
+            rotError = (270 - devices.getHeading() + 180) % 360 - 180
+            curDist = 30
+            if devices.ultrasonic_back is not None:
+                curDist = devices.ultrasonic_back.distance(MM)
+            error = (curDist - 30)/2
+            move.drive(-100 + min(rotError * 2 + 5, 25) + error, -error, min(rotError * 2, 25), 35)
+            if (devices.isBothPos):
+                currentState = RETURNINGHOME
+        elif (pickingRot == 270):
+            currentState = DISPENSING
+    
+    if (currentState == RETURNINGHOME):
+        move.followLine(1, 270)
+    
             
